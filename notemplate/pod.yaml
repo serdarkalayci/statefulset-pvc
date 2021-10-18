@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: outsidepod
+spec:
+  volumes:
+    - name: vol
+      persistentVolumeClaim:
+        claimName: notemplateclaim
+  containers:
+    - name: outsidepod-container
+      image: busybox
+      command: ["sleep"]
+      args: ["infinity"]      
+      volumeMounts:
+        - mountPath: "/usr/data"
+          name: vol

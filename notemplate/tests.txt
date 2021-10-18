@@ -1,0 +1,43 @@
+for i in 0 1; do kubectl exec "notemplatess-$i" -- sh -c 'echo "$(hostname)" > /usr/share/nginx/html/index.html'; done
+// Write hostnames inside index.html file for each replica
+
+for i in 0 1; do kubectl exec -i -t "notemplatess-$i" -- sh -c 'curl http://localhost/'; done
+// Do a curl to see everything is good
+
+kubectl delete pod notemplatess-1
+// Delete the pod number 1 and it gets created again and bound to the same folder
+
+for i in 0 1; do kubectl exec -i -t "notemplatess-$i" -- sh -c 'curl http://localhost/'; done
+// Do a curl to see everything is good
+
+kubectl scale sts notemplatess replicas=3
+// Scale to 3 replicas
+
+for i in 0 1 2; do kubectl exec -i -t "notemplatess-$i" -- sh -c 'curl http://localhost/'; done
+// Do a curl to see everything is good except it will return 404 for the third pod
+
+kubectl exec notemplatess-2 -- sh -c 'echo "$(hostname)" > /usr/share/nginx/html/index.html'
+// Add hostname to index.html file inside the third pod
+
+for i in 0 1 2; do kubectl exec -i -t "notemplatess-$i" -- sh -c 'curl http://localhost/'; done
+// Do a curl to see everything is good
+
+kubectl apply -f pod.yaml
+// Create a busybox pod
+
+kubectl exec -i -t outsidepod -- sh
+// Get into busybox container's shell
+
+- cd usr/data
+- ls
+// This command must show you the folders that StatefulSet containers created before
+// notemplatess-0  notemplatess-1  notemplatess-2
+
+k exec -i -t notemplatess-0 -- sh
+// Get into one of the nginx pod's shell
+
+- cd usr/share/nginx/html/
+- ls
+index.html
+- cat index.html
+notemplatess-0
